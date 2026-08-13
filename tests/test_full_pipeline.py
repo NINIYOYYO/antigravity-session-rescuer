@@ -8,28 +8,29 @@
 4. 验证备份管理器的原子性与快照完整性。
 """
 
+import json
 import os
 import sqlite3
-import json
-from antigravity_rescuer.db_forensics import (
-    scan_conversation_directory,
-)
-from antigravity_rescuer.project_normalizer import (
-    discover_existing_projects,
-    sync_all_projects_to_disk,
-    to_unencoded_uri,
-    to_encoded_uri,
-)
-from antigravity_rescuer.proto_compiler import (
-    build_single_summary_record,
-    parse_proto_raw,
-    encode_field,
-)
+
 from antigravity_rescuer.backup_manager import (
     create_atomic_backup,
     list_all_backups,
 )
+from antigravity_rescuer.db_forensics import (
+    scan_conversation_directory,
+)
 from antigravity_rescuer.process_manager import get_default_antigravity_executable
+from antigravity_rescuer.project_normalizer import (
+    discover_existing_projects,
+    sync_all_projects_to_disk,
+    to_encoded_uri,
+    to_unencoded_uri,
+)
+from antigravity_rescuer.proto_compiler import (
+    build_single_summary_record,
+    encode_field,
+    parse_proto_raw,
+)
 from antigravity_rescuer.rpc_client import get_active_server_info
 
 
@@ -48,7 +49,8 @@ def create_mock_conversation_db(
 
     # 构造 trajectory_metadata_blob
     f1 = encode_field(1, 2, folder_path.encode("utf-8")) if folder_path else b""
-    f7 = encode_field(7, 2, ("file:///" + folder_path.replace(":", "%3A")).encode("utf-8")) if folder_path else b""
+    f7_uri = ("file:///" + folder_path.replace(":", "%3A")).encode("utf-8")
+    f7 = encode_field(7, 2, f7_uri) if folder_path else b""
     blob_parts = bytearray()
     if f1:
         blob_parts.extend(f1)
@@ -217,13 +219,12 @@ def test_atomic_backup_manager(tmp_path):
 def test_rpc_log_parsing(tmp_path):
     """测试从模拟 main.log 中提取活动端口与 CSRF Token。"""
     mock_log = tmp_path / "main.log"
-    mock_log.write_text(
-        """
-[2026-08-14 02:00:00] [info] Spawning: language_server.exe --csrf_token 11223344-5566-7788-99aa-bbccddeeff00 --app_data_dir antigravity
-[2026-08-14 02:00:01] [info] Local: https://127.0.0.1:58999/
-""",
-        encoding="utf-8",
+    log_content = (
+        "[2026-08-14 02:00:00] [info] Spawning: language_server.exe "
+        "--csrf_token 11223344-5566-7788-99aa-bbccddeeff00 --app_data_dir antigravity\n"
+        "[2026-08-14 02:00:01] [info] Local: https://127.0.0.1:58999/\n"
     )
+    mock_log.write_text(log_content, encoding="utf-8")
 
     port, token = get_active_server_info(str(mock_log))
     assert port == 58999

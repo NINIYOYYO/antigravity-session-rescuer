@@ -5,14 +5,15 @@
 """
 
 import json
+
 from antigravity_rescuer.project_normalizer import (
-    to_encoded_uri,
-    to_unencoded_uri,
-    uri_to_local_path,
     build_proto3_project_dict,
     discover_existing_projects,
     get_or_create_project_for_path,
     sync_all_projects_to_disk,
+    to_encoded_uri,
+    to_unencoded_uri,
+    uri_to_local_path,
 )
 
 

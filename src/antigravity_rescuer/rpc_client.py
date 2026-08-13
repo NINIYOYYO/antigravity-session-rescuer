@@ -7,17 +7,17 @@ Language Server 动态 RPC 同步客户端.
 3. 实时向内存树与持久化存储推送项目名称与资源配置，无需重启客户端即可即时生效。
 """
 
+import json
 import os
 import re
-import json
 import ssl
-import urllib.request
 import urllib.error
-from typing import Dict, Tuple, Optional
+import urllib.request
+
 from antigravity_rescuer.project_normalizer import build_proto3_project_dict
 
 
-def get_active_server_info(log_path: Optional[str] = None) -> Tuple[Optional[int], Optional[str]]:
+def get_active_server_info(log_path: str | None = None) -> tuple[int | None, str | None]:
     """
     从 Antigravity 的 main.log 中解析当前活跃的 Language Server 端口号与 CSRF Token。
 
@@ -40,7 +40,7 @@ def get_active_server_info(log_path: Optional[str] = None) -> Tuple[Optional[int
         return None, None
 
     try:
-        with open(log_path, "r", encoding="utf-8", errors="ignore") as f:
+        with open(log_path, encoding="utf-8", errors="ignore") as f:
             content = f.read()
 
         port_matches = re.findall(r"https://127\.0\.0\.1:(\d+)/", content)
@@ -61,7 +61,7 @@ def update_project_via_rpc(
     pname: str,
     raw_path: str,
     timeout: int = 5,
-) -> Tuple[bool, str]:
+) -> tuple[bool, str]:
     """
     向 Language Server 发送 UpdateProject RPC 请求更新单个项目配置。
 
@@ -107,9 +107,9 @@ def update_project_via_rpc(
 
 
 def broadcast_all_projects(
-    projects_map: Dict[str, Tuple[str, str]],
-    log_path: Optional[str] = None,
-) -> Tuple[int, int]:
+    projects_map: dict[str, tuple[str, str]],
+    log_path: str | None = None,
+) -> tuple[int, int]:
     """
     自动检测正在运行的 Antigravity 实例，并将所有项目名称全量广播推送。
 

@@ -5,10 +5,11 @@
 """
 
 import sqlite3
+
 from antigravity_rescuer.db_forensics import (
-    is_clean_title,
     check_and_repair_sqlite_db,
     extract_pure_title,
+    is_clean_title,
     is_subagent_trajectory,
 )
 from antigravity_rescuer.proto_compiler import encode_field
@@ -45,7 +46,7 @@ def test_sqlite_db_forensics(tmp_path):
     )
 
     # 插入 step_type = 23 (AI Title Payload, Field 4 = Title)
-    title_field = encode_field(4, 2, "优化图像渲染性能".encode("utf-8"))
+    title_field = encode_field(4, 2, "优化图像渲染性能".encode())
     cur.execute(
         "INSERT INTO steps VALUES (1, 23, ?)",
         (title_field,),

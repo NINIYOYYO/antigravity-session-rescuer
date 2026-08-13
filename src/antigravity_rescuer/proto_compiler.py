@@ -5,7 +5,6 @@ Protobuf 编译与中央索引生成模块.
 负责将扫描解析出的主会话元数据编译为官方标准格式的 `agyhub_summaries_proto.pb`。
 """
 
-from typing import Dict, List
 
 
 def encode_varint(value: int) -> bytes:
@@ -109,7 +108,7 @@ def build_workspace_metadata(folder_unencoded_uri: str) -> bytes:
     return sub1 + sub2 + sub4
 
 
-def parse_proto_raw(blob: bytes) -> Dict[int, List[bytes]]:
+def parse_proto_raw(blob: bytes) -> dict[int, list[bytes]]:
     """
     对 Protobuf 二进制数据进行第一层扁平化解析，提取所有 Length-delimited 字段。
 
@@ -120,7 +119,7 @@ def parse_proto_raw(blob: bytes) -> Dict[int, List[bytes]]:
         Dict[int, List[bytes]]: 字段编号到字节列表的映射字典。
     """
     idx = 0
-    fields: Dict[int, List[bytes]] = {}
+    fields: dict[int, list[bytes]] = {}
     while idx < len(blob):
         tag, idx = decode_varint(blob, idx)
         field_num = tag >> 3

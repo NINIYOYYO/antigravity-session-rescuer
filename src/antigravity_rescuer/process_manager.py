@@ -5,10 +5,9 @@
 """
 
 import os
-import sys
 import subprocess
+import sys
 import time
-from typing import Optional
 
 
 def stop_antigravity_processes() -> bool:
@@ -47,7 +46,7 @@ def stop_antigravity_processes() -> bool:
         return False
 
 
-def get_default_antigravity_executable() -> Optional[str]:
+def get_default_antigravity_executable() -> str | None:
     """
     根据当前操作系统自动探测 Antigravity 客户端可执行文件的默认安装路径。
 
@@ -89,7 +88,7 @@ def get_default_antigravity_executable() -> Optional[str]:
     return None
 
 
-def start_antigravity_process(exe_path: Optional[str] = None) -> bool:
+def start_antigravity_process(exe_path: str | None = None) -> bool:
     """
     重新启动 Antigravity 客户端。
 

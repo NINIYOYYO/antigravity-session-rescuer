@@ -5,7 +5,8 @@ CLI 命令行接口集成测试.
 """
 
 from unittest.mock import patch
-from antigravity_rescuer.cli import main, auto_detect_environment
+
+from antigravity_rescuer.cli import auto_detect_environment, main
 
 
 def test_auto_detect_environment(tmp_path):
@@ -43,8 +44,9 @@ def test_cli_list_backups(capsys):
 
 def test_cli_backup_only(tmp_path, capsys):
     """测试 CLI --backup-only 参数输出。"""
+    mock_path = str(tmp_path / "backup_test")
     with patch("sys.argv", ["antigravity-rescuer", "--backup-only"]):
-        with patch("antigravity_rescuer.cli.create_atomic_backup", return_value=str(tmp_path / "backup_test")):
+        with patch("antigravity_rescuer.cli.create_atomic_backup", return_value=mock_path):
             main()
     captured = capsys.readouterr()
     assert "备份成功创建至" in captured.out

@@ -5,10 +5,9 @@ Antigravity Session Rescuer 命令行交互入口.
 支持跨平台全自动数据目录探测与 --data-dir 自定义路径覆盖。
 """
 
-import sys
-import os
 import argparse
-from typing import Dict, Tuple, List, Optional
+import os
+import sys
 
 # 强制 UTF-8 控制台输出，防止 Windows GBK 报错
 if sys.platform.startswith("win"):
@@ -16,13 +15,16 @@ if sys.platform.startswith("win"):
     sys.stderr.reconfigure(encoding="utf-8", errors="replace")
 
 from antigravity_rescuer.backup_manager import create_atomic_backup, list_all_backups
-from antigravity_rescuer.process_manager import stop_antigravity_processes, start_antigravity_process
 from antigravity_rescuer.db_forensics import scan_conversation_directory
+from antigravity_rescuer.process_manager import (
+    start_antigravity_process,
+    stop_antigravity_processes,
+)
 from antigravity_rescuer.project_normalizer import (
-    to_encoded_uri,
-    to_unencoded_uri,
     discover_existing_projects,
     sync_all_projects_to_disk,
+    to_encoded_uri,
+    to_unencoded_uri,
 )
 from antigravity_rescuer.proto_compiler import (
     build_single_summary_record,
@@ -30,7 +32,7 @@ from antigravity_rescuer.proto_compiler import (
 from antigravity_rescuer.rpc_client import broadcast_all_projects
 
 
-def auto_detect_environment(custom_data_dir: Optional[str] = None) -> Tuple[str, str, str, List[str]]:
+def auto_detect_environment(custom_data_dir: str | None = None) -> tuple[str, str, str, list[str]]:
     """
     自动探测当前用户的 Antigravity 数据目录、会话目录及所有项目同步目标路径。
 
@@ -72,7 +74,9 @@ def auto_detect_environment(custom_data_dir: Optional[str] = None) -> Tuple[str,
         os.path.join(user_home, ".gemini", "projects"),
     ]
     if sys.platform.startswith("win"):
-        target_dirs.append(os.path.join(os.path.expandvars(r"%APPDATA%"), "Antigravity", "projects"))
+        target_dirs.append(
+            os.path.join(os.path.expandvars(r"%APPDATA%"), "Antigravity", "projects")
+        )
     elif sys.platform.startswith("darwin"):
         target_dirs.append(os.path.expanduser("~/Library/Application Support/Antigravity/projects"))
     else:
@@ -94,7 +98,7 @@ def run_dry_run_preview(conv_dir: str, config_proj_dir: str) -> None:
     print("=======================================================\n")
 
     print(f"[+] 正在扫描会话存储路径: {conv_dir}")
-    projects_map: Dict[str, Tuple[str, str]] = discover_existing_projects(config_proj_dir)
+    projects_map: dict[str, tuple[str, str]] = discover_existing_projects(config_proj_dir)
     print(f"[+] 动态加载已有项目配置: {len(projects_map)} 个")
 
     main_sessions, main_cnt, sub_cnt = scan_conversation_directory(conv_dir, projects_map)
@@ -118,7 +122,7 @@ def run_full_auto_recovery(
     base_data_dir: str,
     conv_dir: str,
     config_proj_dir: str,
-    target_dirs: List[str],
+    target_dirs: list[str],
 ) -> None:
     """
     执行通用自动化冷修复流程。
@@ -147,8 +151,9 @@ def run_full_auto_recovery(
     print("\n[3/5] 正在动态解析项目拓扑并提取 AI 原生标题...")
     projects_map = discover_existing_projects(config_proj_dir)
     main_sessions, main_cnt, sub_cnt = scan_conversation_directory(conv_dir, projects_map)
+    total_p = len(projects_map)
     print(
-        f"    [+] 成功解析 {main_cnt} 个顶级主会话 (分离 {sub_cnt} 个子任务，绑定 {len(projects_map)} 个项目)"
+        f"    [+] 成功解析 {main_cnt} 个顶级主会话 (分离 {sub_cnt} 个子任务，绑定 {total_p} 个项目)"
     )
 
     # 4. 同步规范化项目 JSON

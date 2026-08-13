@@ -5,12 +5,13 @@ Protobuf 编译器单元测试.
 """
 
 import pytest
+
 from antigravity_rescuer.proto_compiler import (
-    encode_varint,
-    decode_varint,
-    make_timestamp,
-    build_workspace_metadata,
     build_single_summary_record,
+    build_workspace_metadata,
+    decode_varint,
+    encode_varint,
+    make_timestamp,
     parse_proto_raw,
 )
 

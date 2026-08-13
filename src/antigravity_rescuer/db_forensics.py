@@ -9,17 +9,17 @@ SQLite 数据库深度取证与 AI 标题提取模块.
 """
 
 import os
-import sqlite3
 import re
-from typing import Dict, List, Optional, Tuple
-from antigravity_rescuer.proto_compiler import parse_proto_raw
+import sqlite3
+
 from antigravity_rescuer.project_normalizer import (
-    uri_to_local_path,
     get_or_create_project_for_path,
+    uri_to_local_path,
 )
+from antigravity_rescuer.proto_compiler import parse_proto_raw
 
 
-def is_clean_title(title: Optional[str]) -> bool:
+def is_clean_title(title: str | None) -> bool:
     """
     严格校验标题文本是否为人类可读的高质量自然语言标题。
 
@@ -57,7 +57,7 @@ def is_clean_title(title: Optional[str]) -> bool:
     return True
 
 
-def parse_proto_strings(blob: bytes) -> Dict[int, List[str]]:
+def parse_proto_strings(blob: bytes) -> dict[int, list[str]]:
     """
     递归解析 Protobuf 二进制数据中的所有文本字符串，并按字段编号归类。
 
@@ -68,7 +68,7 @@ def parse_proto_strings(blob: bytes) -> Dict[int, List[str]]:
         Dict[int, List[str]]: 字段编号到提取出的字符串列表。
     """
     idx = 0
-    res: Dict[int, List[str]] = {}
+    res: dict[int, list[str]] = {}
     while idx < len(blob):
         tag = 0
         shift = 0
@@ -285,8 +285,8 @@ def get_conversation_step_count(db_path: str) -> int:
 
 def scan_conversation_directory(
     conv_dir: str,
-    projects_map: Dict[str, Tuple[str, str]],
-) -> Tuple[List[Dict[str, str]], int, int]:
+    projects_map: dict[str, tuple[str, str]],
+) -> tuple[list[dict[str, str]], int, int]:
     """
     全量扫描会话目录，动态提取工作区路径并推导项目归属。
 

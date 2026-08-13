@@ -7,10 +7,9 @@
 3. 生成严格符合 Google protojson 规范的无冲突项目字典。
 """
 
-import os
 import json
+import os
 import uuid
-from typing import Dict, List, Tuple
 from urllib.parse import quote, unquote
 
 
@@ -25,8 +24,7 @@ def to_encoded_uri(raw_path: str) -> str:
         str: 规范化后的转义 URI 字符串。
     """
     p = raw_path.replace("\\", "/")
-    if p.startswith("file:///"):
-        p = p[len("file:///") :]
+    p = p.removeprefix("file:///")
     if len(p) >= 2 and p[1] in (":", "%"):
         drive = p[0].lower()
         if p[1] == ":":
@@ -62,15 +60,14 @@ def uri_to_local_path(uri: str) -> str:
     Returns:
         str: 本地绝对路径。
     """
-    if uri.startswith("file:///"):
-        uri = uri[len("file:///") :]
+    uri = uri.removeprefix("file:///")
     decoded = unquote(uri)
     if len(decoded) >= 2 and decoded[1] == ":":
         return decoded.replace("/", "\\")
     return decoded
 
 
-def build_proto3_project_dict(pid: str, pname: str, raw_path: str) -> Dict[str, object]:
+def build_proto3_project_dict(pid: str, pname: str, raw_path: str) -> dict[str, object]:
     """
     构建符合 Go protojson 严格反序列化要求的纯净 Project 字典。
 
@@ -102,7 +99,7 @@ def build_proto3_project_dict(pid: str, pname: str, raw_path: str) -> Dict[str, 
     }
 
 
-def discover_existing_projects(config_proj_dir: str) -> Dict[str, Tuple[str, str]]:
+def discover_existing_projects(config_proj_dir: str) -> dict[str, tuple[str, str]]:
     """
     自动从指定配置目录中动态读取并发现所有现有的正式项目配置。
 
@@ -112,7 +109,7 @@ def discover_existing_projects(config_proj_dir: str) -> Dict[str, Tuple[str, str
     Returns:
         Dict[str, Tuple[str, str]]: 项目 ID 到 (项目名称, 本地路径) 的映射字典。
     """
-    projects_map: Dict[str, Tuple[str, str]] = {}
+    projects_map: dict[str, tuple[str, str]] = {}
     if not os.path.exists(config_proj_dir):
         return projects_map
 
@@ -122,7 +119,7 @@ def discover_existing_projects(config_proj_dir: str) -> Dict[str, Tuple[str, str
         pid = f[:-5]
         fpath = os.path.join(config_proj_dir, f)
         try:
-            with open(fpath, "r", encoding="utf-8", errors="ignore") as fp:
+            with open(fpath, encoding="utf-8", errors="ignore") as fp:
                 data = json.load(fp)
             pname = data.get("name", pid)
             raw_path = ""
@@ -142,8 +139,8 @@ def discover_existing_projects(config_proj_dir: str) -> Dict[str, Tuple[str, str
 
 def get_or_create_project_for_path(
     folder_path: str,
-    projects_map: Dict[str, Tuple[str, str]],
-) -> Tuple[str, str]:
+    projects_map: dict[str, tuple[str, str]],
+) -> tuple[str, str]:
     """
     根据工作区路径查找对应项目，若不存在则根据文件夹名动态推导新项目实体。
 
@@ -170,8 +167,8 @@ def get_or_create_project_for_path(
 
 
 def sync_all_projects_to_disk(
-    target_dirs: List[str],
-    projects_map: Dict[str, Tuple[str, str]],
+    target_dirs: list[str],
+    projects_map: dict[str, tuple[str, str]],
 ) -> int:
     """
     将规范化后的项目配置批量写入指定的目标目录列表中。

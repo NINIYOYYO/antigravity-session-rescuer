@@ -10,12 +10,11 @@
 import os
 import shutil
 import time
-from typing import List, Dict, Optional
 
 
 def create_atomic_backup(
-    source_dir: Optional[str] = None,
-    backup_root: Optional[str] = None,
+    source_dir: str | None = None,
+    backup_root: str | None = None,
 ) -> str:
     """
     为 Antigravity 数据目录创建带精确时间戳的完整原子备份。
@@ -57,7 +56,7 @@ def create_atomic_backup(
     return target_backup_dir
 
 
-def list_all_backups(backup_root: Optional[str] = None) -> List[Dict[str, str]]:
+def list_all_backups(backup_root: str | None = None) -> list[dict[str, str]]:
     """
     扫描并列出所有历史备份点。
 
