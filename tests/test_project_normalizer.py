@@ -26,7 +26,7 @@ def test_uri_encoding_and_decoding():
 
     assert encoded == "file:///d%3A/programing/anime_mini_site"
     assert unencoded == "file:///d:/programing/anime_mini_site"
-    assert back_path.lower() == raw.lower()
+    assert back_path.replace("\\", "/").lower() == raw.replace("\\", "/").lower()
 
 
 def test_build_proto3_project_dict():

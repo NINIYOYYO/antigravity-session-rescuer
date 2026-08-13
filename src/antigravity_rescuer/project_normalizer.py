@@ -9,6 +9,7 @@
 
 import json
 import os
+import sys
 import uuid
 from urllib.parse import quote, unquote
 
@@ -60,10 +61,13 @@ def uri_to_local_path(uri: str) -> str:
     Returns:
         str: 本地绝对路径。
     """
-    uri = uri.removeprefix("file:///")
+    if uri.startswith("file:///"):
+        uri = uri[len("file:///") :]
     decoded = unquote(uri)
     if len(decoded) >= 2 and decoded[1] == ":":
-        return decoded.replace("/", "\\")
+        if sys.platform.startswith("win"):
+            return decoded.replace("/", "\\")
+        return decoded
     return decoded
 
 
@@ -142,25 +146,29 @@ def get_or_create_project_for_path(
     projects_map: dict[str, tuple[str, str]],
 ) -> tuple[str, str]:
     """
-    根据工作区路径查找对应项目，若不存在则根据文件夹名动态推导新项目实体。
+    根据工作区路径查找对应项目，若不存在则根据文件夹名跨平台动态推导新项目实体。
 
     Args:
         folder_path (str): 目标工作区本地路径。
-        projects_map (Dict[str, Tuple[str, str]]): 当前已知项目映射表。
+        projects_map (dict[str, tuple[str, str]]): 当前已知项目映射表。
 
     Returns:
-        Tuple[str, str]: (项目ID, 项目名称)。
+        tuple[str, str]: (项目ID, 项目名称)。
     """
     if not folder_path:
         return "outside-of-project", "Outside of Project"
 
-    clean_norm = os.path.normpath(folder_path).lower()
+    # 跨平台路径统一正斜杠匹配
+    norm_key = folder_path.replace("\\", "/").rstrip("/").lower()
     for pid, (pname, raw_p) in projects_map.items():
-        if raw_p and os.path.normpath(raw_p).lower() == clean_norm:
+        if raw_p and raw_p.replace("\\", "/").rstrip("/").lower() == norm_key:
             return pid, pname
 
-    # 若未找到，根据文件夹名称自动推导
-    folder_name = os.path.basename(os.path.normpath(folder_path)) or "Project"
+    # 跨平台稳健提取文件夹名称
+    clean_p = folder_path.replace("\\", "/").rstrip("/")
+    folder_name = clean_p.split("/")[-1] if "/" in clean_p else clean_p
+    folder_name = folder_name or "Project"
+
     deterministic_uuid = str(uuid.uuid5(uuid.NAMESPACE_URL, folder_path))
     projects_map[deterministic_uuid] = (folder_name, folder_path)
     return deterministic_uuid, folder_name
